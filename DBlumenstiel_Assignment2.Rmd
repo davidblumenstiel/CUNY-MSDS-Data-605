@@ -1,0 +1,172 @@
+---
+title: "Homework-2"
+author: "David Blumenstiel"
+date: "9/1/2020"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Problem Set 1
+
+### 1: Show that A transoposed * A does not equal A * A transposed
+```{}
+At = A transposed
+
+Let's use A = [1,2] as an example
+              [3,4]
+
+This means that At = [1,3]
+                     [2,4]
+
+Now lets try At * A: [1,3] * [1,2]  = [10,14]
+                     [2,4]   [3,4]    [14,20]
+
+
+And now A * At: [1,2] * [1,3]  =  [5 ,11]
+                [3,4]   [2,4]     [11,25]
+
+As you can see, each product is different.
+
+
+### 2: For a special type of square matrix A, we get At*A = A*At.  Under what conditions could this be true? (Hint: The Identity matrix I is an example of such a matrix).
+
+It would be true for the Identity matrix.  
+
+It would also be true in other cases where A = At.  This could happen where A is a matrix of all the same number, or where the Upper Triangular matrix is equal to the Lower Triangular Matrix.    
+E.g.   [5,3,3]
+       [3,5,3]
+       [3,3,5]
+```       
+
+## Problem Set 2
+
+Write an R function to factorize a square matrix A into LU or LDU, whichever you prefer. Please submit your response in an R Markdown document using our class naming convention, E.g. LFulton_Assignment2_PS2.png You don’t have to worry about permuting rows of A and you can assume that A is less than 5x5, if you need to hard-code any variables in your code. If you doing the entire assignment in R, then please submit only one markdown document for both the problems.
+
+Here goes:
+```{r}
+#This function will find the factors of a square matrix.  The output is going to be a list containing first the Lower Triangular Martix, and Last the Upper Triangular Matrix
+factorize <- function(A) {
+  
+  #Defines Lower Triangular martices with dimensions equivalant to those of the input matrix
+  #Also initiates the Upper Triangular Matrix as the input matrix (which will be changed throughout)
+  sidelen = dim(A)[1]
+  
+  U = A  
+  L = matrix(nrow = sidelen, ncol = sidelen)  
+  
+  ##############################################
+  #Gives the Lower Triangular Matrix the appropriate 1 and 0 values
+  
+  
+  
+  #Iterates through the rows
+  row = 0
+  while (row < sidelen){
+    row = row+1
+    
+    #Iterates through the columns
+    col = 0
+    while (col < sidelen) {
+      col = col+1
+      
+      #Sets L diagnal = to 1
+      if (col == row) {
+        L[row,col] = 1
+        
+      #Sets L Upper Triangle to 0
+      } else if (row < col) {
+         
+        L[row,col] = 0
+        
+      }
+    }
+  }
+  ################################################
+  #Finds the operations used to reduce where appropriate the Upper Triangular Matrix components to 0, and assigns corresponding values to the Lower Triangular Matrix
+  
+  #Row iterator
+  row = 0
+  while (row < sidelen) {
+    row = row+1
+    
+    #Column iterator
+    col = 0
+    while (col < sidelen) {
+      col = col+1
+      
+      #Finds components that are in the lower triangle of U
+      if (row > col) {
+
+        #Finds the multiplier from a compatable row (not 0 in the correpsonding column) to reuduce the component in question to 0.  This should handle 0s for the component in question, but will not work if all other rows for the column are 0
+        
+        for (i in seq(1,sidelen,1)) {
+          #Finds a compatable row to take a multiplier, and gets a multiplier
+          
+          #Needs to satisfy the conditions below, which basically say the row needs a non 0 number in the column in question for the multiplier row, can't be the row containing the component, and needs 0s to the left of the multiplier unless its the first row.
+          
+          #                               V V V V V V V V V V V  This bit here was especially challanging
+          if (U[i,col] != 0 & i != row & (all(U[i,c(1:(col-1))] == 0) | col-1 == 0)) {
+            
+            multrow = i
+            
+            #mult is what the multrow needs to be multiplied by to cancle out the component in question.  It also gets added to the    
+            #component's space in L
+            mult = -U[row,col]/U[multrow,col]
+            
+            #Exits the loop when a suitable row is found
+            break
+            
+          }
+        
+        }
+         
+        #Subtracts multrow * mult 
+        U[row,] = U[row,] + mult * U[multrow,]
+        
+        
+        #Sets the corresponding component in L to the negative multiplier from above
+        L[row,col] = -mult
+        
+      }
+      
+    }
+
+  }
+  #################################################
+  #Returns the Lower and Upper Triangular matricies in a list: L,U
+  return(list(L,U))
+  
+}
+
+```
+
+Okay, let's see if it works
+
+```{r}
+set.seed("1234567890")
+#Makes a randomish square 4X4 matrix, but this should work for any square matrix
+A <- matrix(sample(c(-10:10), size = 16),nrow = 4)
+
+
+results <- factorize(A)
+L <- results[[1]]
+U <- results[[2]]
+
+
+print(A)
+print(L %*% U)
+
+```
+
+Yep, it works.  The only cases where this doesn't work is when component 1,1 is a 0.  Other than that, works for everything I tested.
+
+
+
+
