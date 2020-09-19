@@ -1,0 +1,164 @@
+---
+title: "Homework 4"
+author: "David Blumenstiel"
+date: "9/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Problem Set 1
+
+#### Given matrix A
+```{r}
+A <- matrix(c(1,-1,2,0,3,4),nrow = 2)
+A
+```
+
+#### write code in R to compute X = A AT and Y = AT A.
+```{r}
+AT <- t(A) # sets AT to the transpose of A
+AT
+X <- A %*% AT   #Multiplies the matrices
+X
+Y <- AT %*% A   #Multiplies the matrices
+Y
+```
+
+#### Then, compute the eigenvalues and eigenvectors of X and Y using the built-in commans in R.
+
+```{r}
+#Finds eigen values and vectors for X and Y
+Yeigvals <- eigen(Y)$values        
+Yeigvecs <- eigen(Y)$vectors
+Xeigvals <- eigen(X)$values
+Xeigvecs <- eigen(X)$vectors
+
+Yeigvals
+Yeigvecs
+Xeigvals
+Xeigvecs
+```
+
+#### Then, compute the left-singular, singular values, and right-singular vectors of A using the svd command.
+```{r}
+#Finds the left singular (component 'u'), right singular ('v'), and singular values ('d') of A.  
+leftSingVals <- svd(A)$u
+SingVals <- svd(A)$d
+rightSingVals <- svd(A)$v
+
+leftSingVals
+SingVals
+rightSingVals
+```
+
+#### Examine the two sets of singular vectors and show that they are indeed eigenvectors of X and Y.
+
+Let's start with the right singular valyes
+```{r}
+rightSingVals
+Yeigvecs
+```
+Above are the right singular values, and the eigenvectors of Y.
+
+The first column of singular values is a multiple (-1) of the first eigenvector of Y, which means it itself is an eigenvector of Y
+
+The second column of singular values is the same (first multiple) of the second eigenvector of Y.
+
+Now for the left singular values(below)
+```{r}
+leftSingVals
+Xeigvecs
+```
+It's the same situation as before.  The first set of left singular values are a multiple (-1 again) of the first eigenvector of X, and the second set is the same as the second eigenvector of X.
+
+#### In addition, the two non-zero eigenvalues (the 3rd value will be very close to zero, if not zero) of both X and Y are the same 
+```{r}
+#Prints out the eigenvalues
+Yeigvals
+Xeigvals
+```
+Yep
+
+#### and are squares of the non-zero singular values of A.
+```{r} 
+SingVals #Prints the singular values
+Yeigvals[1:2]**.5  #Takes the square of the first two values of Y (the third is almost 0)
+Xeigvals**.5 #Same for X
+```
+Indeed: They are squares of A.
+
+## Problem Set 2
+
+#### Using the procedure outlined in section 1 of the weekly handout, write a function to compute the inverse of a well-conditioned full-rank square matrix using co-factors. In order to compute the co-factors, you may use built-in commands to compute the determinant. Your function should have the following signature: B = myinverse(A) where A is a matrix and B is its inverse and AxB = I. The off-diagonal elements of I should be close to zero, if not zero. Likewise, the diagonal elements should be close to 1, if not 1. Small numerical precision errors are acceptable but the function myinverse should be correct and must use co-factors and determinant of A to compute the inverse.
+
+```{r}
+#Defines a function to get the inverse of a square matrix
+myinverse <- function(A) {
+  
+  detA = det(A)    #gets the determinant of A  
+  size = dim(A)[1] #gets the side length of A
+  C = matrix(nrow=size,ncol=size) #Inititalizes a blank matrix which will become the cofactor matrix
+  
+  #This defines the co-factor matrix
+  for(i in 1:size){ #Goes through the rows
+    
+    for(j in 1:size) { #Goes through the columns
+      
+      M = A[-i,-j] #Defines the sub-matrix of A as A with row i and column j removed
+      C[i,j] = ((-1)**(i+j))*det(M) #Sets component i,j of the cofactor matrix to the determinant of the sub-matrix with the correct sign: the cofactor for that component
+      
+    }
+   
+  }
+  
+  Ct = t(C) #gets the transpose of the cofactor matrix
+  Ainv = Ct/detA #Sets the inverse of A to the transpose coactor matrix over the determinant of A
+  
+  return(Ainv)
+}
+```
+
+Let's test it out on the following square, full-rank matrix
+```{r}
+A <- matrix(c(1,3,4,-5,2,0,1,3,2),nrow = 3) #Sets A to the following matrix
+A
+```
+
+```{r}
+B <- myinverse(A) #Gets the inverse A
+B
+```
+
+We can prove that B is the inverse of A by multiplying it by A.  This should yield the identity matrix of A if B is the inverse.
+```{r}
+I = B %*% A 
+print(round(I,10)) #Rounding will shave off the high negative exponents.  Looks nicer.
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
