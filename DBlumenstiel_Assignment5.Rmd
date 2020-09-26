@@ -1,0 +1,218 @@
+---
+title: "Data 605 Assignment 5"
+author: "David Blumenstiel"
+date: "9/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### Choose independently two numbers B and C at random from the interval [0, 1] with uniform density. Prove that B and C are proper probability distributions. 
+
+So, broken down from the text, we can interperet that B and C are always going to be between 0 and 1 (interval), and have the same probability of being any number within that range (uniform density).  Numbers between 0 and 1 can be interpereted as probabilities.  Also, if I were to plot the uniform distribution over 0 to 1, and then find the area within, it would be 1.  Sounds like a proper (uniform) probability distribution to me
+
+
+### Note that the point (B,C) is then chosen at random in the unit square. Find the probability that:
+
+#### (a) B + C < 1/2.
+
+So, we need the probability of two numbers, randomly chosen between 0 and 1, summing to less than 0.5.  It can be written like this
+
+Pr(B+C) < 0.5
+
+We could also interpret this as: one number is less than the 0.5 - the other number, which is between 0 and 0.5.  
+
+Pr(B+C) < 0.5  ==  Pr(0 < B < 0.5 , 0 < C < 0.5 - B)
+
+You can also think about it like a plot, where the axes are B and C, and anything under the 'Line of Maximum Values' (B+C = 0.5) is a success.  Below, one can see that 1/8 of the 'box of possibilities' is under that line.  Thus the probability of B + C < 0.5 is 0.125.
+
+```{r}
+B = seq(0,.5,0.05)
+C = 0.5 - B
+
+plot(B,C, type="l", main = "Box of Possibilities", ylim = c(0,1), xlim = c(0,1))
+```
+    
+Here's a simulation of that
+```{r}
+set.seed("1234567890")
+runs = 10000
+
+i = 0
+success = 0
+while(i<runs){
+  
+  i = i + 1
+  B = runif(1)
+  C = runif(1)
+  
+  if(B + C < 0.5){
+    
+    success = success + 1
+    
+  }
+  
+}
+
+print(success/runs)
+```
+pretty close
+
+#### BC < 1/2.
+
+Now we have Pr(B*C) < 0.5.  Should be much more likely than the last.
+
+If we were to write C in terms of B (like we did for the last problem), then C has a maximum value of 0.5/B.  Note how the maximum value for one number is now 1, and not 0.5.
+
+If we were to graph the range of possibilities for B and C, it would look like this, where all successes are under the C = 0.5/B line:
+```{r}
+B = seq(0,1,0.01)
+C = 0.5/B
+
+plot(B,C, type="l", main = "Box of Possibilities", ylim = c(0,1), xlim = c(0,1))
+```
+Yep, the area under the curve is much larger this time.  But how much larger?  Well let's try taking the intergral this time.
+
+We know that B can be between 0 and 1 now, and that B = 0.5/B.  If you try taking the integral of this in it's entirety, it's going to diverge.  We instead can find the area of the box C = 1, B = 0.5/C, and the area under the curve C = 0.5/B between B = 0.5/1 and 1.
+
+in calculus terms:
+          
+1 * 0.5 + ∫ 0.5/B dB
+
+Where the integral is from 0.5 to 1
+          
+
+This works out to about 0.847, simulated below.
+```{r}
+set.seed("1234567890")
+runs = 10000
+
+i = 0
+success = 0
+while(i<runs){
+  
+  i = i + 1
+  B = runif(1)
+  C = runif(1)
+  
+  if(B * C < 0.5){
+    
+    success = success + 1
+    
+  }
+  
+}
+
+print(success/runs)
+
+```
+
+#### |B - C| < 1/2.
+
+Let's again try to think of C in terms of B.  The goal here is to again try to draw a line under which are all the possibilities of B and C so that |B - C| < 1/2.  Below is a plot of possible values for B and C.  Notice how there are two lines now?  This is a result of the absolute value.  The values for B and C that satisfy the equation are between those lines
+
+```{r}
+B = seq(0,1,0.01)
+C = B - 0.5
+C2 = B + 0.5
+plot(C,B, type="l", main = "Box of Possibilities", ylim = c(0,1), xlim = c(0,1))
+lines(C2,B, type="l", main = "Box of Possibilities", ylim = c(0,1), xlim = c(0,1))
+```
+
+If you recall from the first problem, we know that the area behind either of these lines is going to be 1/8.  Thus, we can subtract 2 * 1/8 from the total area (1) to get the area of the possibilities for B and C.  This comes out to 0.75, meaning there's a 3 in 4 chance that randomly chosen B and C values will fufill |B - C| < 1/2.  This is simulated below.
+
+```{r}
+set.seed("1234567890")
+runs = 10000
+
+i = 0
+success = 0
+while(i<runs){
+  
+  i = i + 1
+  B = runif(1)
+  C = runif(1)
+  
+  if(((B - C)**2)**.5 < 0.5){
+    
+    success = success + 1
+    
+  }
+  
+}
+
+print(success/runs)
+
+
+```
+
+
+
+#### max{B,C} < 1/2.
+
+Let's think of this one a bit differently.  We know that B and C each have a 0.5 probability of being above 1/2, and the same probability of being below.  Becuase it only really matters here if they are above or below that, and not the specifics of the number, we can state this as:  Pr(B < 0.5 AND C < 0.5).
+
+So be needs to be a 0.5 or less, followed by C at 0.5 or less.  The probability of this happening is 0.5 * 0.5 = 0.25.
+
+This again is simulated below.
+```{r}
+set.seed("1234567890")
+runs = 10000
+
+i = 0
+success = 0
+while(i<runs){
+  
+  i = i + 1
+  B = runif(1)
+  C = runif(1)
+  
+  if(max(B,C)< 0.5){
+    
+    success = success + 1
+    
+  }
+  
+}
+
+print(success/runs)
+
+
+```
+
+#### min{B,C} < 1/2.
+
+Similarly to the last problem, we can think of this as B or C (or both) needs to be below 0.5: Pr(B < 0.5 OR C < 0.5).  We know that the probability of neither B or C being 0.5 or lower is 0.25 (see the last problem).  We can subtract this from 1 to get the probability that either B or C or both will be below 0.5:  
+
+0.75
+
+Simulated below.
+```{r}
+set.seed("1234567890")
+runs = 10000
+
+i = 0
+success = 0
+while(i<runs){
+  
+  i = i + 1
+  B = runif(1)
+  C = runif(1)
+  
+  if(min(B,C)< 0.5){
+    
+    success = success + 1
+    
+  }
+  
+}
+
+print(success/runs)
+
+
+```
+
+
