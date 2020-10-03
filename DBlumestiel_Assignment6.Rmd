@@ -1,0 +1,193 @@
+---
+title: "Assignment 6"
+author: "David Blumenstiel"
+date: "9/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### 1: A box contains 54 red marbles, 9 white marbles, and 75 blue marbles. If a marble is randomly selected from the box, what is the probability that it is red or blue? Express your answer as a fraction or a decimal number rounded to four decimal places.
+
+The probability of getting a red or blue marble is the number of red + blue marbles, over the total number of marbles:  127/138
+
+### 2: You are going to play mini golf. A ball machine that contains 19 green golf balls, 20 red golf balls, 24 blue golf balls, and 17 yellow golf balls, randomly gives you your ball. What is the probability that you end up with a red golf ball? Express your answer as a simplified fraction or a decimal rounded to four decimal places.
+
+The probability of getting a red ball is the number of red balls over the total number of balls: 20/80 == 1/4
+
+### 3: A Pizza delivery company classifies its customers by gender and location of residence. The research department has gathered data from a random sample of 1399 customers. The data is summarized in the table below.  What is the probability that a customer is not male or does not live with parents? Write your answer as a fraction or a decimal number rounded to four decimal places.
+```{r}
+GenderResidence <- matrix(c(81,228,116,79,215,252,130,97,129,72), ncol = 2, byrow = TRUE)
+rownames(GenderResidence) <- c('Apartment','Dorm','With Parent(s)','Sorority/Fraternity House','Other')
+colnames(GenderResidence) <- c("Male","Female")
+
+GenderResidence
+```
+
+The probability is going to be the total number of Female customers + the number of Males who do not live with parents, over the total number of customers.  We interperet the 'or' in the question as inclusive of 'not male' and 'doesn't live with parents'.  Thus the only group we exclue are males who live with parents
+```{r}
+(sum(GenderResidence[,"Female"]) + #Total number of Females
+  sum(GenderResidence[,"Male"]) - GenderResidence["With Parent(s)","Male"]) / #Total number of Males, less the number who live with parents
+  1399
+```
+or 1184/1399
+
+### 4: Determine if the following events are independent: Going to the gym; Losing weight.
+
+Assuming going to the gym affects weight loss and vice versa, then they are dependent.
+
+### 5: A veggie wrap at City Subs is composed of 3 different vegetables and 3 different condiments wrapped up in a tortilla. If there are 8 vegetables, 7 condiments, and 3 types of tortilla available, how many different veggie wraps can be made?
+
+So, we know we can't have multiple of the same vegetable or condiment, and the order by which the sandwich is build presumably doesn't matter.  Sounds like a combination without repetition to me.
+
+```{r}
+veg = 8
+cond = 7
+tort = 3
+
+vegChoose = 3
+condChoose = 3
+tortChoose = 1
+
+#A little function to make this easier
+combine <- function(n,r) {
+  
+  combined = factorial(n)/(factorial(n-r)*factorial(r))
+  
+  return(combined)  
+}
+
+combine(veg,vegChoose) * combine(cond, condChoose) * combine(tort, tortChoose)
+```
+There are 5880 combinations
+
+### 6: Determine if the following events are independent:  Jeff runs out of gas on the way to work; Liz watches the evening news
+
+They are probably independent events (excluding wierd butterfly effects)
+
+### 7: The newly elected president needs to decide the remaining 8 spots available in the cabinet he/she is appointing. If there are 14 eligible candidates for these positions (where rank matters), how many different ways can the members of the cabinet be appointed?
+
+Sounds like a permutation without reputation, assuming the same person cannot hold more than one office.
+```{r}
+candidates = 14
+spots = 8
+
+permute <- function(n,r) {
+  
+  permuted = factorial(n)/factorial(n-r)
+  
+  return(permuted)
+}
+
+permute(candidates, spots)
+```
+There are 121080960 ways to organize the cabinet.
+
+### 8: A bag contains 9 red, 4 orange, and 9 green jellybeans. What is the probability of reaching into the bag and randomly withdrawing 4 jellybeans such that the number of red ones is 0, the number of orange ones is 1, and the number of green ones is 3? Write your answer as a fraction or a decimal number rounded to four decimal places.
+
+This is asking for the number of combinations drawing the correct jelly beans over the total number of combinations (all without replacement).  Should look somthing like this:
+```{r}
+red = 9
+orange = 4
+green = 9
+total = red + orange + green
+
+chooseRed = 0
+chooseOrange = 1
+chooseGreen = 3
+totalChoose = 4
+
+combine(red, chooseRed) * combine(orange, chooseOrange) * combine(green, chooseGreen) / combine(total, totalChoose)
+
+```
+The probability of doing so is about 0.0459
+
+
+### 9: Evaluate the following expression   11!/7!
+
+Same thing as 11 * 10 * 9 * 8
+
+Which is 7920
+
+
+### 10: Describe the complement of the given event: 67% of subscribers to a fitness magazine are over the age of 34.
+
+33% of the subscribers are not over the age of 34  (<=34)
+
+### 11: If you throw exactly three heads in four tosses of a coin you win $97. If not, you pay me $30.
+
+#### Step 1. Find the expected value of the proposition. Round your answer to two decimal places.
+
+First, the probability of winning is going to be all combinations of choosing 3 heads from 4 tosses, over all permutations of tosses (which is a permutation with replcement.  There are probably more ways to do this, but you can visualize why this works.
+```{r}
+combine(4,3)/4**2
+```
+Second, now that we know the probability of winning is 25%, we need to determine the expected winnings - expected losses
+```{r}
+97 * 0.25 - 30 * (1-0.25)
+```
+We would expect to win $1.75 on the whole.
+
+#### Step 2. If you played this game 559 times how much would you expect to win or lose? (Losses must be entered as negative.)
+
+559 rounds * $1.75/round = $978.25
+
+
+### 12: Flip a coin 9 times. If you get 4 tails or less, I will pay you $23. Otherwise you pay me $26.
+
+#### Step 1. Find the expected value of the proposition. Round your answer to two decimal places.
+
+Again, first we need to find the probability of winning (4 tails or less).  This is going to be the sum of choices for which we end up with 0-4 tails, over the total number of possibilities (full permutation of possibilities with replacement):
+```{r}
+(choose(9,0) + choose(9,1) + choose(9,2) + choose(9,3) + choose(9,4)) / 2**9
+```
+The probability of winning is 50%.  Now we calculate the expected yield same as before.
+```{r}
+23 * 0.5 - 26 * 0.5
+```
+One would loose $1.5 on average per round.
+
+#### Step 2. If you played this game 994 times how much would you expect to win or lose? (Losses must be entered as negative.)
+994 * -1.5 means you would expect to loose $1491 (-1491)
+
+
+### 13: The sensitivity and specificity of the polygraph has been a subject of study and debate for years. A 2001 study of the use of polygraph for screening purposes suggested that the probability of detecting a liar was .59 (sensitivity) and that the probability of detecting a "truth teller" was .90 (specificity). We estimate that about 20% of individuals selected for the screening polygraph will lie.
+
+#### a. What is the probability that an individual is actually a liar given that the polygraph detected him/her as such? (Show me the table or the formulaic solution or both.)
+
+Sounds like a Bayes question.
+
+To put it into words, we're looking for: the probability that it was an actual liar who was truthfully detected (True positive; (Pr(DetLiar|Liar) X Pr(Liar)) over the probability that it was an actual liar who was truthfully detected (Pr(DetLiar|Liar) X Pr(Liar)) PLUS the probability that it wasn't a liar who was wrongfully detected as a liar (False positive; Pr(DetLiar|Truther) X Pr(Truther)).  Simply put: the probability of it being an actual liar that was detected over all possible probabilities of liars being detected.
+
+Pr(DetLiar|Liar) X Pr(Liar) / (Pr(DetLiar|Liar) X Pr(Liar) + (1-Pr(DetTruther|Truther)) X Pr(Truther))
+
+0.59 X 0.20 / (0.59 X 0.20 + (1 - 0.90) X 0.80 ) = 0.596
+
+So about a 60% chance that that was actually a liar. 
+
+#### b. What is the probability that an individual is actually a truth-teller given that the polygraph detected him/her as such? (Show me the table or the formulaic solution or both.)
+
+Same thing as before, but with truth tellers.  We want to find the probabality 
+
+Pr(DetTruth|Truth) X Pr(Truth) / (Pr(DetTruth|Truth) X Pr(Truth) + (1-Pr(DetLiar|Liar)) X Pr(Liar))
+
+0.90 X 0.80 / (0.90 X 0.80 + (1 - 0.59) X 0.20 ) = 0.898
+
+so about 90% chance that the person was actually a truth teller.
+
+#### c. What is the probability that a randomly selected individual is either a liar or was identified as a liar by the polygraph? Be sure to write the probability statement.
+
+One way to think about this as the probability that they were a liar (detected or not; Pr(0.20)) + the probability they were telling the truth but were detected as a liar.  We'll look at the problem like that, but there are other ways to solve this, such as taking the probability of being a liar, adding the probability that they were detected as a liar, and subtracting the probability that they were a liar who was detected as a liar.
+
+
+Pr(Liar) + Pr(DetLiar|Truth)
+
+or put another way
+
+Pr(Liar) + (1-Pr(DetTruther|Truther)) X Pr(Truther)
+
+0.2 + (1 - 0.90) X 0.80 ) = 0.28
+
+So there's a 28% chance of a randomly selected individual being a liar, or being detected as a liar.
