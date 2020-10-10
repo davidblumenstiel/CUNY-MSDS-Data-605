@@ -1,0 +1,145 @@
+---
+title: "Assignment 7"
+author: "David Blumenstiel"
+date: "10/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### 1: Let X1, X2, . . . , Xn be n mutually independent random variables, each of which is uniformly distributed on the integers from 1 to k. Let Y denote the minimum of the Xi’s. Find the distribution of Y 
+
+We have n integers from 1 to k, and Y is going to be the lowest one.  I think  what this is asking for is the number of ways we can get the lowest integer out of all possible combinations of Xi's.  
+
+Problem here is that Y doesn't nessicarily have to be the lowest 'possible' (in a meta sense) integer from 1 to k: that range might not include 1.  For arguments sake, let's start by looking at this with Y = 1; the lowest 'possible' value for Y.  We just need to find all the permutations by we can choose the X's (with one of them being 1), and divide by the total number of permutations.  
+
+The total number of ways we can arrange the Xi's is easy: it's a permutation with reppetition for values 1 to k, n times; k^n
+
+Easiest way to think about how we can get all combinations of Xi's where at least one of them is == 1 (k^n), is to take all possible combinations and remove combinations where none of the Xi's can == 1.  If k cannot == 1, then we only have k-1 possibilities for each of the Xi's, and the number of combinations here is (k-1)^n.  So, if Y == 1, then the distribution is (k^n - (k-1)^n) / k^n.  
+
+But Y can be any integer from 1 to k.  But, becuase we know it's the minimum, we can just substitute the (k-1)^n in the equation with (k-Y)^n, becuase as Y grows, we have fewer options for combinations where all Xi's are greater than Y.  
+
+In summary, for the probability of Y being the minimum value here is (k^n - (k-Y)^n) / k^n.  
+ 
+
+### 2: Your organization owns a copier (future lawyers, etc.) or MRI (future doctors). This machine has a manufacturer’s expected lifetime of 10 years. This means that we expect one failure every ten years. (Include the probability statements and R Code for each part.)
+
+#### a. What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. Model as a geometric. (Hint: the probability is equivalent to not failing during the first 8 years..)
+
+Out of many random machines, we can assume that each one has a 10% chance of failing per year (p).
+```{r}
+failRate = 0.1 #Chance of failure per year.  This is p
+```
+
+The expected value when there's a geometric distribution is 1/p.  So the expected value here is 10
+
+The probability of a machine failing after 8 years (not including the 8th year) is going to be the the probability that it did not fail during the first 8 years, or 1 - the probability that it does.  
+
+The probability that it fails any time after the first 8 years, with a geometric distribution, is going to be (1 - P(fail_per_year))^years == (1-0.1)^8 == 0.430
+```{r}
+#This is the probability it does fail during the first 8 years, subtracted from 1.  Same thing as above
+year = 8
+
+1 - pgeom(year - 1, failRate)
+```
+
+The standard deviation is derrived below as the the square root of the not-failure rate-over-the failrate^2:
+```{r}
+
+var = (1-failRate)/failRate**2 
+stdev = var**0.5
+stdev
+```
+
+
+#### b. What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. Model as an exponential. 
+
+Same failure rate and as before, and also expected value, but the expected value is calculated as 1/rate parameter = 1/0.1 = 10
+
+This time for an exponential distribution, the probability of it NOT failing WITHIN the first 8 years is going to be
+
+P(Fail)e^(-P(Fail)*years)
+
+or exactly
+
+0.1exp(-0.1*8)  == 0.449
+
+Also calculated below:
+```{r}
+#This is the probability it does fail during the first 8 years, subtracted from 1.  Same thing as above
+year = 8
+1 - pexp(year, rate = failRate)
+```
+
+The standard deviation for exponential distributions is the same as the expected value: 10
+
+
+#### c. What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. Model as a binomial. (Hint: 0 success in 8 years) 
+
+The expected value here is going to be the number of trials (years; 8), * the probability of failure (0.1): 0.8.  Note, this is our expected number of failures within 8 years, and not the expected time until failure like before.
+
+For a binomial distribution, the chance of any number of outcomes is:
+
+P(Fail)^nFails * P(noFail)^(nNotFails)
+
+So here, for 0 fails and 8 not-fails within 8 years we have:
+
+0.1^0 * (1-0.1)^8  == 0.430 = probability
+
+Also calculated below:
+```{r}
+#This is the probability it doesn't fail during the first 8 years (and presumabley fails somewere after that and before the end of time)
+year = 8
+pbinom(0, 8, 0.1)
+```
+
+The variance of a binomial distribution is going to be the number of trials (years; 8) times the probability of failure (0.1) times the probability of not-failing (1-0.1 == 0.9).  The standard deviation is the squar root of that
+
+```{r}
+var = 8*0.1*(1-0.1) 
+stdev = var**0.5
+stdev
+```
+
+
+#### d. What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. Model as a Poisson. 
+
+First, for a poisson distribution we need to know the rate of failures * the time (ususally represented as lambda).  This is 8 (years) * 0.1 == 0.8
+
+This value is the expected value (same as the binomial distribution; 0.8) and the variance
+
+if the standard deviation is the sqrt of the variance, the standard deviation is 0.894
+
+```{r}
+var = 8*0.1
+stdev = var**0.5
+stdev
+```
+
+The probability of it not failing before 8 years here is going to be:
+
+(lambda^k * e^-lambda)/k!
+
+shown below
+
+```{r}
+failRate = 0.1
+years = 8  #years
+lambda = failRate * years
+k = 0 #The amount of failures we want within the timeframe
+
+#easy way:
+ppois(0,failRate)^years
+
+```
+
+```{r}
+#hard way:
+(lambda**k * exp(-lambda))/factorial(k)
+
+```
+
+
+
