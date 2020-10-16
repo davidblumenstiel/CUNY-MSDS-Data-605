@@ -1,0 +1,85 @@
+---
+title: "Assignment 8"
+author: "David Blumenstiel"
+date: "10/12/2020"
+output:
+  prettydoc::html_pretty:
+    theme: leonids
+    highlight: github
+    math: katex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### 11: A company buys 100 lightbulbs, each of which has an exponential lifetime of 1000 hours. What is the expected time for the first of these bulbs to burn out? (See Exercise 10.)
+
+To recap Exercise 10: of n independent random variables, the minimum value (M) of the independent random variables is going to follow an exponential density centered around (mean of) the mean of the independent variables (μ) over n.  
+
+We know the mean lifespan here is 1000 hours and there are 100 bulbs, so we should expect a minimum life of 10 hours (1000 hours/100 bulbs)
+
+
+### 14: Assume that X1 and X2 are independent random variables, each having an exponential density with parameter L(lambda). Show that Z = X1 − X2 has density 
+
+\[fx_{z}(z) = (1/2)Le^{(−L|z|)}\]
+
+After much searching, and help from this video (reccomended by Magnus; https://www.youtube.com/watch?v=f8Nli1AfygM), this sounds to me like a convolution problem. So, z here should be the convolution of the equations which grant us $x_{1}$ and $x_{2}$.
+
+Now, $x_{1}-Z$ and $x_{2}-Z$ have exponential densities with the parameter L, so we can describe both x1 and x2 as the PDF of the exponential distribution $Le^{(-Lx)}$ when x >= 0 (if x < 0 then 0).
+
+So in other words, the function that gets us the density of z is the convolution of the x's, which looks like this (dont ask me why):
+
+\[f_{z}(z) =  \int_{-\infty}^{\infty} f_{x_{1}}(x_{1}) f_{x_{2}}(x_{1}-Z) \,dx_{1} \]
+
+Note, we substituted out the $x_{2}$ with $x_{1}-Z$.  Now we need to replace the variables with the exponential distribution PDF
+
+\[f_{z}(z) =  \int_{0}^{\infty} Le^{(-Lx_{1})} * Le^{-L(x_{1}-Z)} \,dx_{1} \]
+
+It's now integrated from 0 to $\infty$ because the product is going to be 0 otherwise, according to the expoential PDF.  Now simplified (skipping over about 20 mins of latex-writing) and integrated this comes out to:
+
+\[f_{z}(z) = (1/2)Le^{(Lz)}\] when z < 0 (not sure why) 
+
+Now, z should be a semetric distribution around 0 because $-z =x_{2}-x_{1}$, and they are independently distributed, meaning z and -z have the same distribution.  So, if z is going to be greater than or equal to 0, we have the similar result: 
+
+\[f_{z}(z) = (1/2)Le^{(-Lz)}\] when z >= 0
+
+Now if we wanted to sum it up with a more general equation we could say:
+
+\[f_{z}(z) = (1/2)Le^{(-L|z|)}\] when z = anything
+
+Looks alot like the equation from the question now. (serious props to this video though: https://www.youtube.com/watch?v=f8Nli1AfygM.  I pretty much followed along with it for this solution)
+
+
+### 1: Let X be a continuous random variable with mean μ = 10 and variance o^2 = 100/3. Using Chebyshev’s Inequality, find an upper bound for the following probabilities.
+
+#### (a) P(|X − 10| >= 2).
+
+So Chebyshev’s Inequality means that here, we can expect a probability of at most 1/k^2 that a random variable is going to be k stdevs ($(100/3)^{0.5}$ per stdev, which im just going to call "o") away from the mean (10).
+
+P(|X − 10| >= 2) is another way of saying "the probability of X being greater than 2 away from the mean (10).  Now the 2 in here is 2/o stdevs (which is k).  So now we can rephrase it as  "The probability that X is going to be greater than 2/o, or k stdevs away from the mean".
+
+This is starting to sound more like Chebyshev’s Inequality, where the upper bound for the probability is going to be $1k^2$ from the mean.  So now we have the equation, which we can solve as the upper bound:
+
+\[P(|X − 10| \geq 2) \leq 1/k^2 = 1/(2*(100/3)^{-0.5})^2 = 8.3333 \]
+
+I'm still not entirely sure what a value over 1 means here.
+
+#### (b) P(|X − 10| >= 5).
+
+Same technique for this question, which (sparing the details this time) looks like this, substituting the 2 for a 5:
+
+\[P(|X − 10| \geq 5) \leq 1/k^2 = 1/(5*(100/3)^{-0.5})^2 = 1.3333 \]
+
+#### (c) P(|X − 10| >= 9).
+
+And again, with a 9:
+
+\[P(|X − 10| \geq 9) \leq 1/k^2 = 1/(9*(100/3)^{-0.5})^2 = 0.4115 \]
+
+It's under 1 now
+
+#### (d) P(|X − 10| >= 20).
+
+\[P(|X − 10| \geq 20) \leq 1/k^2 = 1/(20*(100/3)^{-0.5})^2 = 0.0833 \]
+
