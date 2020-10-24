@@ -1,0 +1,110 @@
+---
+title: "Assignment 9"
+author: "David Blumenstiel"
+date: "10/20/2020"
+output:
+  prettydoc::html_pretty:
+    theme: leonids
+    highlight: github
+    math: katex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### 11: The price of one share of stock in the Pilsdorff Beer Company (see Exercise 8.2.12) is given by Yn on the nth day of the year. Finn observes that the differences Xn = Yn+1 − Yn appear to be independent random variables with a common distribution having mean μ = 0 and variance  σ^2 = 1/4. If Y1 = 100, estimate the probability that Y365 is
+
+#### a: Greater than or equal to 100
+
+So, gut instinct kinda tells us that this is going to have a probability of 0.5.  We know that because the mean of the distribution represented by the daily change is 0, and we start at y1 = 100.  It's just as likely to have gone up as it is to have gone down, which is where P = 0.5 comes from; it doesn't matter how long we wait.  
+
+Now with the Central Limit Theorem, we can represent all the possible outcomes as changes from the start (above or below Y1) as a normal distribution, and find the area under the distribution where the changes were positive (so Y365 is more or equal than 100).  
+
+The normal distribution representing the change from the origional price will have a sample mean of 0, and standard deviation of sample means of 1/2 (sqrt of the variance) * square root of the sample size (in this case 364 days of change); 0.5*364$^2$.  Makes sense, as longer we wait, the more the price is likely to deviate as it will have more room to do so.  This is calculated below.
+
+```{r}
+pnorm(0, mean = 0, sd = 0.5*364 ^ 0.5, lower.tail = FALSE)  #Upper tail becuase we're looking for greater than
+```
+
+#### b: Greater than or equal to 110
+
+This time with a positive change of 10:
+
+```{r}
+pnorm(10, mean = 0, sd = 0.5*364 ^ 0.5, lower.tail = FALSE)  #Upper tail becuase we're looking for greater than
+```
+
+
+#### c: Greater than or equal to 120
+
+With a change of +20:
+
+```{r}
+pnorm(20, mean = 0, sd = 0.5*364 ^ 0.5, lower.tail = FALSE)  #Upper tail becuase we're looking for greater than
+```
+
+### 2. Calculate the expected value and variance of the binomial distribution using the moment generating function.
+
+If we recall, a binomial PMF looks like this:
+
+$P_x=(^n_x)p^x(1-p)^{n-x}$
+
+Where $P_x$ is the probability that x sucesses will occur within n trials with p probability of a success occuring within any trial; $(^n_x)$ is the number of combinations x in n.  Note: x needs to be 0 or more; there are no un-happenings.
+
+The momenet generating function $M_x(t) = Expected(e^{tx})$ gives us the expected value of $e^{tX}$ at moment t.  We can combine tis with the PMF of the binomial distribution to generate the moments of the binomial distribution, including the expected value and the variance.  The combination of the two yields the function:
+
+$M(t)= \Sigma^n_{x=0} e^{tx}*(^n_x) p^x(1-p)^{n-x}$
+
+Where it's the sum of x to n because the binomial distribution deals with discrete values (otherwise, we would integrate).
+
+This should simplify to $M(t)= (pe^t+1-p)^n$ when t is a real number
+
+Anyways, to get the first moment (expected value), we take the first derivitave (in respect to t) of the MGF and evaluate at 0.  The first derivitave is (I just plugged it into a calculator):
+
+$M'(t) = npe^t(pe^t-p+1)^{n-1}$
+
+Evaluated at 0 we get the expected value:
+
+$M'(0) = npe^0(pe^0-p+1)^{n-1} = np(p-p+1)^{n-1} = np(1)^{n-1} = np$
+
+Now for the variance we need to take the second derivitave of the MGF (also taken from a calculator) and evaluate at 0
+
+$M''(t) = np\mathrm{e}^t\left(p\mathrm{e}^t-p+1\right)^{n-2}\left(np\mathrm{e}^t-p+1\right)$
+
+$M''(0) = np\mathrm{e}^0\left(p\mathrm{e}^0-p+1\right)^{n-2}\left(np\mathrm{e}^0-p+1\right) = np(np-p+1)$
+
+In summary, the expected value of the binomial distribution is $np$, and the variance is $np(np-p+1)$
+
+
+### 3. Calculate the expected value and variance of the exponential distribution using the moment generating function.
+
+Same thing again with the exponential distribution, which looks like this: $\lambda e^{-\lambda x}$ for $x \geq 0$ 
+
+The MGF for the exponential distribution should look like this (integral this time becuase it's continuous):
+
+$M(t)=\int^\inf_0 e^{tx}*\lambda e^{-\lambda x} = -\dfrac{\lambda}{t-\lambda}$
+
+Now for the expected value, we need the first derivitave concerning t, evaluated at 0:
+
+$M'(t) = \dfrac{\lambda }{\left(t-\lambda \right)^2}$
+
+$M'(0) = 1/\lambda $
+
+And for the variance, we'll need the second derivitave concerning t, evaluated at 0:
+
+$M''(t) = -\dfrac{2\lambda}{\left(t-\lambda\right)^3}$
+
+$M''(0) = -\dfrac{2\lambda}{\left(-\lambda\right)^3} = 2/\lambda^2$
+
+In summary: the expected value is $1/\lambda$ and the variance is $2/\lambda^2$
+
+
+
+
+
+
+
+
+
