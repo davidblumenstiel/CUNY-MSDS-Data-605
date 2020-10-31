@@ -1,0 +1,45 @@
+---
+title: "Assignment 10"
+author: "David Blumenstiel"
+date: "10/27/2020"
+output: 
+  prettydoc::html_pretty:
+    theme: leonids
+    highlight: github
+    math: katex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Smith is in jail and has 1 dollar; he can get out on bail if he has 8 dollars. A guard agrees to make a series of bets with him. If Smith bets A dollars, he wins A dollars with probability .4 and loses A dollars with probability .6.
+
+## Find the probability that he wins 8 dollars before losing all of his money if:
+
+### (a) He bets 1 dollar each time (timid strategy).
+
+Overall, there are two possible outcomes: he makes it to 8 dollars, or he looses it all.  
+
+For the timid strategy, Smith has many different ways in which me might reach 8 or 0 dollars, starting from 1.   It might (probably  will) take more than 7 rounds.  It's worth noting that because there are a potential infinite amount of bets, the game will have to end eventually, either at 0 or 8 dollars.  
+
+We can think of this like a random walk between two players, the gaurd starting with $\$7$ and Smith starting with $\$1$; we should try to find the probability of one of them looisng all their money first; same thing as Smith winning all $\$8$ or the guard taking it all.  Luckily, there's a formula for this: https://en.wikipedia.org/wiki/Gambler%27s_ruin#Unfair_coin_flipping.  
+
+$Pr(Smith Looses) = 1-p/(1-p)^{n_2} /1-p/(1-p)^{n_1+n_2}$
+Where p = 0.4 is the probability that smith wins a bet, $n_2$ = 7 is the amount of money the gaurd has(that Smith needs to win), and $n_1$ = 1 is the money Smith starts with.  Plug all that in and we get:
+```{r}
+(1-(0.4/0.6)^7)/(1-(0.4/0.6)^8)
+```
+So about 0.98 chance of Smith loosing all his money first, and a $1 - 0.98 = 0.02$ chance of Smith winning all the gaurd's money first, and reaching $8.
+
+
+### (b) He bets, each time, as much as possible but not more than necessary to bring his fortune up to 8 dollars (bold strategy).
+
+The bold strategy is much simpler in this specific instance.  If sucessful, he will have bet 1, then 2, then 4; this is the only path he can follow to win.  If he looses at any one of the three steps, he looses all his money; this would be a more complicated question if he needed to win somthing other than $\$2^x$.  
+
+We can look at this like a binomial, where he needs 3 out of 3 sucesses (2 -> 4 -> 8) or he looses.  The probability of winning a round is 0.4, so the probability of winning 3 in a row is $0.4^3 = 0.064$.  
+
+
+### (c) Which strategy gives Smith the better chance of getting out of jail?
+
+0.064 (b) > 0.02 (a): the bold strategy is better.
