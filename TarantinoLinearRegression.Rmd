@@ -1,0 +1,141 @@
+---
+title: "Tarantino Expletives: A Simple Linear Regression"
+author: "David Blumenstiel"
+date: "11/2/2020"
+output:  
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+    math: katex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+```
+
+### Five-Thirty-Eight actually has a dataset (https://fivethirtyeight.com/features/complete-catalog-curses-deaths-quentin-tarantino-films/) of all the swears and deaths that occur within some of Quentin Tarantino's films (7 of them), including the time in the films that they occur.  Let's see if the frequency of swearing (more data than deaths) has any relationship to time elapsed within these films.
+
+#### First, some data prep.  What we're given to begin with is a dataset of the movie, the 'type' of data (word or death; we select for word only), the word itself, and the timestamp it occured in mins.  Included below is also a summary, in which we can see that some movies have alot more than others.
+```{r}
+#Import data
+raw <- read.csv('https://raw.githubusercontent.com/davidblumenstiel/data/master/tarantino/tarantino.csv')
+
+df <- subset(raw, type == "word")
+
+head(df)
+summary(df)
+```
+
+
+### Data Prep
+
+#### We want to get this into a form we can use.  We'll do that by taking tallies of the swears that occur in each minute of film.  We also need to keep track of the amount of movies that are running because not all have the same length, and this would bias (more swears) towards earlier minutes.
+
+#### What we'll end up with for the analysis is a frequency of swears per minute, divided by the number of movies from where they may have come from.
+```{r}
+#Creates groups for the data for each min elapsed
+df$minute <- cut(df$minutes_in, breaks = seq(0, 162, by = 1), right = TRUE)
+
+
+#Counts the number of movies still runnning by X time in mins.
+df$nmovies <- NA
+
+i = 0
+while (i < nrow(df)) {
+  i = i + 1
+  
+  if(df$minutes_in[i] <= 100) {
+    df$nmovies[i] <- 7
+  
+  } else if(df$minutes_in[i] <= 112) {
+    df$nmovies[i] <- 6
+    
+  } else if(df$minutes_in[i] <= 153) {
+    df$nmovies[i] <- 5
+    
+  } else if(df$minutes_in[i] <= 153) {
+    df$nmovies[i] <- 4
+    
+  } else if(df$minutes_in[i] <= 160) {
+    df$nmovies[i] <- 3
+    
+  } else if(df$minutes_in[i] <= 165) {
+    df$nmovies[i] <- 2
+    
+  } else if(df$minutes_in[i] <= 178) {
+    df$nmovies[i] <- 1
+    
+  }
+  
+}
+
+#Makes a dataset broken down by the minute group, with the frequency of swears
+  
+swears <- data.frame()
+
+swears <- group_by(df, minute)%>%
+  summarise(swears_freq_adjusted = n()/max(nmovies)) %>%  #The number of swears over the amount of movies for any given minute
+  ungroup()
+
+
+i = 0
+
+# Makes time into a continuous variable
+swears$time <- NA
+while (i < nrow(swears)) {
+  i = i+1
+  
+  swears$time[i] <- i
+  
+}
+
+
+
+
+head(swears)
+
+```
+
+###  Analysis
+
+#### Now that that's done, let's do some analysis.  Below is a scatterplot of the data, along with a linear regression 
+
+
+```{r}
+model <- lm(swears_freq_adjusted~time, data = swears)
+
+ggplot(data = swears, aes(time, swears_freq_adjusted)) + 
+  geom_point() +
+  geom_abline(intercept = model$coefficients[[1]], slope = model$coefficients[[2]], color = 'red') 
+
+model$coefficients
+
+```
+
+#### As we can see, the linear regression didn't capture much of a correlation.  It pretty much predicts about 2 swears per minute per movie throughout.  Let's now test the assumptions
+
+```{r}
+ggplot(fortify(model), aes(x = .fitted, y = .resid)) + geom_point() + geom_hline(yintercept = 0)
+```
+
+#### It looks like there is more variation on the positive end of the residuals than the negative end.  Makes some sense when you think about how there's going to be bouts of dialogue (and swearing) followed by other things (not including speaking).  Let's take a histogram of the residuals and see what that trend looks like.
+
+```{r}
+hist(model$residuals)
+```
+
+#### Yeah, it's a bit right-skewed.  Our assumption of normally distributed residuals doesn't seem to hold.  Let's also take a look at a normal QQ-plot below:
+
+```{r}
+qqnorm(swears$swears_freq_adjusted)
+qqline(y = swears$swears_freq_adjusted)
+```
+
+#### There's a pretty definite curve to it.  I'd say that linear regression likely isn't the best choice for analysis.  Looking back to the original regression and scatter plot, I can kinda see a potential curve to it.  If there is a trend, I suspect adding a squared term to the formula might help capure any pattern there.  
+
+
+
+
