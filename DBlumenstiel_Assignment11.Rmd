@@ -1,0 +1,120 @@
+---
+title: "Assignment 11"
+author: "David Blumenstiel"
+date: "11/3/2020"
+output: 
+  prettydoc::html_pretty:
+      theme: hpstr
+      highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Cars Dataset Summary
+
+Below, we have the cars dataset: 50 observations of speed and associated stopping distance.  There is a basic integer index, and columns for speed and distance.  The head of the dataset and summary stats are  shown below.
+
+
+```{r}
+df <- cars
+
+head(df)
+summary(df)
+
+```
+
+Now, let's plot this out and see what the relationship looks like visably
+
+
+```{r}
+plot(df)
+```
+
+Yep, so as speed goes up, stopping distance also goes up.  It looks fairly linear to me visually.  It also appears that there may be increasing spread as speed goes up.  
+
+
+## Linear Regression
+
+
+Let's make a simple linear regression model using the built-in function, lm(), and plot it along with the scatterplot.
+
+
+```{r}
+model <- lm(df$dist~df$speed)
+plot(df) 
+abline(model$coefficients)
+```
+
+The data appears to follow the regression line pretty well, although looking at it now there may be a small curve to it, which could indicate that a second squared term may be appropriate.  Let's examine the details of the model more closely
+
+
+```{r}
+summary(model)
+```
+
+Above, we have a summary of the model.  Let's look at the parts in order:
+
+Residuals: We know the mean of the residuals is 0, and the median above is -2.27.  It also seems like the median, first quartile and minmum are closer together than the median, third quartile, and maximum, which could indate right skewedness amongst the residuals.
+
+Coefficients:  The y-intercept here is about -17.58, and the slope is about 3.93.  Both are significant (P<0.05), with the slope being very significant (P almost 0).  As for the standard error part, there is a fair bit of variability in the intercept estimate, and not too much is the slope esitmate; it's usually good to see values for the esitmates of around 5-10X the standard error.  What the significance and standard error together tell us is that the measurement of the slope is pretty reliable, and that the measure of intercept isn't perfect but still okay.
+
+Residual Standard Error:  This tells us how well the models fits the data.  The (adjusted) R-squared, a measurement of how well the data fits the regression line, is 0.64 which indicates that the regression fits the data moderately well, and can explain 64% of the variabilitiy in that data. 
+
+## Residuals analysis
+
+Below, we will examine the residual values (the difference between the datapoints and the regression line)
+```{r}
+plot(df$speed,model$residuals)
+abline(h=0)
+```
+
+There is no clear trend in the residuals, which indicate they are probably somewhat random (which is good in terms of our model).  However, the spread does increase towards the higher speeds, which indicates our model may in this case be slightly better off if we transformed one of the variables.  
+
+Below is a histogram of the residuals.
+
+```{r}
+hist(model$residuals, breaks = 10)
+```
+
+The residuals seem passibly normally distributed, although they are a little right skewed, which suggests that positive residuals tend to be of greater magnitude than the lower ones.  If you look at the residuals plot from before you can see that the positive residuals are more widely distributed.
+
+Below is a normal Q-Q Plot
+
+```{r}
+qqnorm(model$residuals)
+qqline(model$residuals)
+```
+
+Although there is a small divergence at either end, the data fits the qqline fairly well.  This indicates that the data likely does come from a distribution that is approximately normal, although maybe a little skewed.  Given that the data set is smallish (n=50), and that Q-Q plots are somewhat subjective, I'd say that the residuals appear fairly normal.
+
+
+## Conclusions
+
+
+Linear regression appears to be an acceptable approach for modeling the stopping distance for a car in this dataset to the speed of the car.  Transforming one of the variables and-or adding a squared term to the model may lead to a better fit, but overall the linear model used here achived a respectible fit (ajusted r-squared = 0.64), and adequitely met the assumptions for linear regression.  
+
+If one were to give me a speed, I would be fairly confident in providing a rough stopping distance with this model for speeds under 25.  Above that I'd be wary of unrecognized (maybe squared) relationships having more sway than this model shows, given the data used here has a maximum speed of 25.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
