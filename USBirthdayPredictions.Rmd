@@ -1,0 +1,187 @@
+---
+title: "US Birthday Prediction"
+author: "David Blumenstiel"
+date: "11/9/2020"
+output: 
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+@@@@@@@@@@@@@@@@@@@@@@
+LOOK at SHAPIRO.TEST
+
+
+@@@@@@@@@@@@@@@@@@@@@@
+
+
+## How to choose a birthday
+
+Five-Thirty-Eight has a a couple nice datasets on the amount of births for each day.  In this article, https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/, they try to see if less people are born on Friday the 13th's.  However, what I'm interested in is if one can simply predict births given the day and month.  The dataset has all of the stuff one needs to find out, so let's make a real bulky multiple regression and see if it does anything.
+
+
+### Perliminary Data Analysis
+
+Below is a glance at what the data looks like.  We're also going to change the month, date, day of the week to factors so we can do regression with them as categorical values.
+```{r}
+df <- read.csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/births/US_births_2000-2014_SSA.csv")
+
+df$month <- as.factor(df$month)
+df$date_of_month <- as.factor(df$date_of_month)
+df$day_of_week <- as.factor(df$day_of_week)
+
+head(df)
+summary(df)
+
+
+```
+
+We have data for the year, the month, date of the month, day of the week, and the amount of recorded births on that day.  The data spans 15 years and there are 5479 observations in total.
+
+Below is basic scatter plot of all birth counts.
+
+```{r}
+plot(df$births)
+```
+
+It's immediately apparent that there are two different types of counts: low and high.  The lower counts tend to be about 4000 births shorter than the higher ones, and there's not much inbetween.  Second thing you might notice is the wavey pattern it follows, which repeats 15 times.  Id be fairly confident in predicting that's related to the month.
+
+Let's break it down further and examine births by each other data category, starting with year below.
+
+```{r}
+
+y <- aggregate(df$births, by=list(Category=df$year), FUN=sum) #Aggregates the births within each year
+plot(y, xlab = 'year', ylab = "births")
+
+```
+
+So it definitely varies by year, with more births occuring around 2006-2008, and fewer past 2010.  There's about a 10% difference between the max and min.  
+
+
+Below is a plot of births by month, not aggregated.
+
+```{r}
+x <- df$month 
+plot(x, df$births, xlab = 'month', ylab = "births")
+
+```
+
+While there is significant variance between days within the month, we can tell that births on average tend to increase from May up through September, before dropping back down in October; one could engauge in pleanty of speculation as to why.  Another less obious detail here is that december has a much lower minimum than does any other month (you'll see why in the next plot).
+
+
+Now let's take a look at day of the month.
+
+```{r}
+x <- df$date_of_month 
+plot(x, df$births, xlab = 'date of month', ylab = "births")
+
+```
+
+Immediately, we can see that the 13th's and the 31st's tend to have lower averages; the 31st doesn't happen every month, and I guess people really don't like giving birth on Friday the 13th's?  Another thing you might notice is the low minium value on the 25th, which I almost gaurentee is because of Christmas, and would explain the December min we saw on the last graph.  Also, the 9th's have a decently larger maximum, and I'm not sure why.
+
+Now let's look at it by day of the week.
+
+```{r}
+x <- df$day_of_week 
+plot(x, df$births, xlab = 'day of week', ylab = "births")
+
+```
+
+*to clarify, Monday here is 1, and Sunday is 7.
+
+There's a few interesting things about this one.  First is that there are signifcantly fewer births on Saturdays and Sundays than the rest of the week.  I'm not sure why that is; maybe people really don't want to ruin their weekends with childbirth, or perhaps the hospitals are just bad at keeping tabs on the weekends.  But if the latter were true, wouldn't we see a big bump in the number recorded on Mondays?  
+
+*It was at this point that the author breifly inquired Google as to why this might occur, and it was suggested that hospitals schedule c-sections and induced labors away from the weekend.  This might have explained the Christmas thing as well.  Although, there was also a noticeable dip in Monday births though; maybe they scheduled them for mid week?*  
+
+The second big thing of note here is the number of outliers on Monday through Friday.  I'm not sure why this is; perhaps the greater influence of holidays on weekdays, or long weekends of Fridays and Mondays.  Hopefully this won't tick off the regression.
+
+
+### Regression
+
+Given that we're taking this all as categorical data, the multiple-linear-regression model here is going to have many variables; specifically, one for each day of the month, day of the week, and month.  We're going to leave year out of it, because I'm more interested in how birth are affected by the time of year rather than which year.
+
+```{r}
+model <- lm(births ~ month + date_of_month + day_of_week, data=df)
+summary(model)
+```
+
+So above we see the breakdown of the model.  If you look at the bottom, you'll see a Adjusted R-squared of 0.875, which means the model is pretty good at predcting the number of births given the data.  The main reason it is good at doing this is because it set the intercept very close to the mean number of births, and differentiated the rest primarily by the day of the week.  If you look at the bottom of the list above, the days of the week are extremely signficant, and affect the prediction by a higher magnitude than either the month or days of the month.  That's not to say that the days of the month and month dont matter though.  Infact, the months (barring April) are highly significant, as are many of the days of the month to a lesser extent.  The last thing worth mentioning are the residual statistics (shown up top), which has a median pretty close to 0 (good), but somewhat disparate 1st and 3rd quartiles and min and max.  We'll pull that appart later.
+
+
+Below is a scatterplot of predictions against actual births.
+
+```{r}
+predictions <- predict(model, data = df[,2:4])
+plot(df$births, predictions, xlab = "Actual Births", ylab = "Predicted Births")
+abline(0,1, col = 'red')
+```
+
+*The red line is what no differences between the two would look like (100% accuracy)
+
+As we can see, it's pretty close for the most part.  There are two big blobs (weekends and week-days) that are right about where they should be.  Noticeably, however, are the outliers to the left of the upper blob; these are low-mid birth days which were falsely predicted as high birth days.  This is likely all of the low birth days that occured on week-days, which are outliers (see the births vs days of the week plot).  We'll examine the residuals further.
+
+## Residuals Analysis
+
+Below is a plot of fitted values against residual values.
+
+```{r}
+plot(model$fitted.values,model$residuals)
+abline(h = 0, col = "red")
+```
+
+As we cold see in the plot before, we have two big blobs for weekends and week-days, and a bunch of low value residuals under the week-day blob.  Residuals seem fairly normally distributed for the weekends, but I'm not sure if it holds for week-days given those outliers.  One thing to note is that there are probably less than 50 outliers below that should be about 4000 residual points.  Let's examine them further with a histogram.
+
+
+```{r}
+hist(model$residuals, breaks = 50)
+```
+
+Overall, it does look fairly normal.  However, there are an abundance of outliers to the left, but the vast majority of the residuals ar enormally distributed.
+
+Let's see what the Q-Q plot looks like.
+
+```{r}
+qqnorm(model$residuals)
+qqline(model$residuals, col = 'red')
+```
+
+Looks great in the middle but pretty ugly on the left end.  I'm not sure how to interperet this given that there should be about 5000 residuals on the Q-Q line, and only a few in comparison as outliers below it.  Let's take a look at a residuals vs leverage plot and see if the outliers actually make much of a difference.
+
+```{r}
+plot(model, which = 5)
+```
+
+As it turns out, those outliers really don't make much of a difference overall.  It marks out a couple influential outliers, but overall you can't even see the Cook's distance lines.  
+
+### Conclusions
+
+Yep, you can predict the expected number of births on any given day fairly well given the day of the week, the month, and the day of the month.  There are definitely days for which this model does not work, as shown by the outlier residuals.  I suspect that if one was to also take into consideration holidays, days off work for hospitals, and apparently Friday the 13th's, then the model would sort those out appropriately.  But overall, this has a fairly good chance of predicting the amount of births on any given day, at least for the years 2000-2014.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
