@@ -1,0 +1,139 @@
+---
+title: "Assignment 12"
+author: "David Blumenstiel"
+date: "11/10/2020"
+output: 
+  prettydoc::html_pretty:
+      theme: cayman
+      highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment 12
+
+#### The attached who.csv dataset contains real-world data from 2008.
+
+## 1. Provide a scatterplot of LifeExp~TotExp, and run simple linear regression. Do not transform the variables. Provide and interpret the F statistics, R^2, standard error,and p-values only. Discuss whether the assumptions of simple linear regression met.
+
+First, let's load in the dataset
+```{r}
+df <- read.csv("https://raw.githubusercontent.com/davidblumenstiel/CUNY-MSDS-Data-605/master/Week-12/who.csv")
+
+head(df)
+summary(df)
+
+```
+
+Below is a scatterplot of the data, along with a linear fit.
+
+```{r}
+
+model <- lm(df$LifeExp~df$TotExp)
+plot(df$LifeExp~df$TotExp)
+abline(model$coefficients, col = "red")
+```
+
+This model obiously need's work.  Let's examine some stats below.
+
+```{r}
+summary(model)
+```
+
+Let's start with the F statistic: the ratio of the mean regression sum of squares over the mean error sum of squares.  This, like the p-value derived from it, can be used to assess the overall significance of the model; unlike the t value, which only considers one variable at a time.  If our F statistic here is greater than the critcal value of the F distribution at a certain signicance level, we can reject the null hypothesis (at that signifcance level) and say that the model fits the data better than an intercept only model.  The critical value of the F distribution with 1 and 188 degrees of freedom (as shown above) and a significance of 0.05 (standard) is about 3.89.  This is much lower than our F statistic for the model, meaning the model does fit the data better than an intercept only model.
+
+The R-squared is the proportion of variance that can be explained by the model, with 0 being none of it, and 1 being a complete fit.  The 0.26 we have isn't that great; our model doesn't fit the majority of the data very well, but it's better than nothing.  R-squared is calculated as the sum of squared residuals over the the total sum of squares.
+
+The standard error (for the intercept and slope here) is an indication of how well the components of the model function.  Small standard errors in comparison to the coefficients are good.  Dividing a coefficient by it's standard error gives us the t-value, which we can see above to the right of the coefficients.  Generally speaking, having coefficients with an absolute value around 5-10 times more than the standard error is a good benchmark.  The intercept standard error is around 86 times less than the coefficient, which bodes well for it, and the slope standard error is about 8 times less which is also good.
+
+The p-values indicate whether or not the fits are significant.  The intercept and slope fits have p-values much less than 0.05, which indicates that they are signicant.  The overall p-value is also less than 0.05 (the same value as for the slope), which indicates that the model is significant.
+
+As to whether or not the assumptions of linear regression are met, I can tell you right now just from looking at the scatter plot that this is not a linear relationship.  Also, look above at the residual median and quartiles: those look super skewed.  I'll do Q-Q and residual plots below to further exemplify that 
+
+```{r}
+qqnorm(model$residuals)
+qqline(model$residuals, col = "red")
+```
+
+Those residuals are definitely not norally distributed, otherwise they would follow the Q-Q line above.  This throws the residual normality and linear relationship assumptions out.  
+
+```{r}
+plot(model$residuals)
+abline(h=0, col = "red")
+```
+
+The residuals once again are definitely not normally distributed.  Homoscedasticity may sill hold though, as although they are not normally distributed, they don't appear to change
+
+Overall, the assumptions for linear regression are not met.
+
+## 2. Raise life expectancy to the 4.6 power (i.e., LifeExp^4.6). Raise total expenditures to the 0.06 power (nearly a log transform, TotExp^.06). Plot LifeExp^4.6 as a function of TotExp^.06, and re-run the simple regression model using the transformed variables. Provide and interpret the F statistics, R^2, standard error, and p-values. Which model is "better?"
+
+```{r}
+dftrans <- df[,c(2,10)]
+dftrans$LifeExp <- dftrans$LifeExp^4.6
+dftrans$TotExp <- dftrans$TotExp^0.06
+
+model2 <- lm(LifeExp~TotExp, data = dftrans)
+
+plot(dftrans$LifeExp~dftrans$TotExp)
+abline(model2$coefficients, col = "red")
+```
+
+Looks much better, right?  Let's look at the stats.
+
+```{r}
+summary(model2)
+```
+
+The F statistic here is much higher than the first model, which was alerady significant.  The p-values are all at the lowest R will show, which is also better than the last, although those were also highly significant.  The standard error is greater for the intercept in comparison to it's coefficient, which is a step down although signifcant.  The standard error for the slope is better though, now 22 times less than the coefficent compared to 8 times less for the origional model.  
+
+Most importantly however, the R-squared is much higher, suggesting the model is a much better fit and now accounts for about 73% of the variance.  I'd definitely say this is the better model, although the residuals still aren't totally normally distributed, as shown below.  But, they are closer. 
+
+```{r}
+hist(model2$residuals)
+
+```
+
+
+## 3. Using the results from 2, forecast life expectancy when TotExp^.06 =1.5. Then forecast life expectancy when TotExp^.06=2.5.
+
+```{r}
+predict(model2, data.frame(TotExp = c(1.5,2.5)))^(1/4.6)
+```
+It predicts life expectancies of around 63.3, and 86.5 years respectively.
+
+
+## 4. Build the following multiple regression model and interpret the F Statistics, R^2, standard error, and p-values. How good is the model?    
+
+### LifeExp = b0+b1 x PropMd + b2 x TotExp +b3 x PropMD x TotExp
+
+To give you an idea of how this fits visually without using higher dimension figures, I'm going to plot predictions against actual values for the model.  I find this useful for assessing multiple regression models.
+
+```{r}
+model3 <- lm(LifeExp ~ PropMD + TotExp + (PropMD*TotExp), data = df)
+plot(df$LifeExp ~ predict(model3, df))
+abline(0,1, col = 'red')
+
+```
+
+So, with a perfect model we would expect all data to fall on the red line above, indicating that the preditions were the same as the actual values.  This is obiously not the case, and this model clearly fails to capture trends as well as the transformation model did.  Let's examine some statistics below.
+
+```{r}
+summary(model3)
+```
+Breifly, the F statistic (34.49) is higher than the critical F value (2.65), indicating significance, although not as much as the transformaton model.  The overall P value is still very close to 0, also indicating overall signicance.  Some of the p-values for the coefficients are greater or lower, but all are still very significant.  The standard error for the intercept looks good, but the standard error for PropMD and PropMD*TotExp isn't as good, being only 4-5 times lower than the coefficients.  Most importantly here though, the R-squared value is 0.36, which indicates that this model fits the data better than the first model, but much worse than the transformation model.
+
+## 5. Forecast LifeExp when PropMD=.03 and TotExp = 14. Does this forecast seem realistic? Why or why not?
+
+```{r}
+predict(model3, data.frame(PropMD = 0.03, TotExp = 14))
+```
+
+107.7 years doesn't seem realistic.  First, that's a pretty long time.  Second, because PropMD is much higher and TotExp is much lower than their average values: such values would be hard for this model to use because the data it was trained on really doesn't have anything like that.  Also, I suspect a high value for somthing like PropMd might not be able to make up for a low value like TotExp in reality; it wouldn't matter how many doctors there were if you weren't using them.
+
+
+
+
+
