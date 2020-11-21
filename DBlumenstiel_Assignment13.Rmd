@@ -1,0 +1,152 @@
+---
+title: "Assignment 13"
+author: "David Blumenstiel"
+date: "11/17/2020"
+output: 
+  prettydoc::html_pretty:
+    theme: leonids
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## 1. Use integration by substitution to solve the integral below.
+
+$\int 4e^{-7x}dx$
+
+Substitution here involves swapping out the -7x term for u, leaving us with $\int 4e^u$.  Now, if $u = -7x$ then $-du/7 = dx$.  Now, writing things in terms of u and moving the 4 outside to simplify it, we have: $-4/7\int e^u du$.  The integral of e^u is e^u.   Tack on a + C and end up with an answer of:
+
+$-4e^{-7x}/7 + C$
+
+## 2. Biologists are treating a pond contaminated with bacteria. The level of contamination is changing at a rate of dN/dt = -3150/t^4 - 220 bacteria per cubic centimeter per day, where t is the number of days since treatment began. Find a function N(t) to estimate the level of contamination if the level after 1 day was 6530 bacteria per cubic centimeter.
+
+We're given a function for the rate, and we need to find a function for the amount; this requires integration as such:
+
+$dN/dt = \int -3150/t^4 - 220 dt$
+
+Break it into two parts and move the coeffifients
+
+$dN/dt = -3150 \int 1/t^4 dt- 220 \int 1 dt$
+
+Solve first part with power rule and give the constant a term 
+
+$N(t) = -3150 * -1/3t^3 - 220t$
+
+Simplify and add a constant
+
+$N(t) = 1050/t^3 - 220t + C$
+
+Now solve for the constant, with t = 1 and N = 6530
+
+$C = 6530 - 1050 + 220 = 5700$
+
+And we end up with:
+
+$N(t) = 1050/t^3 - 220t + 5700$ 
+
+## 3. Find the total area of the red rectangles in the figure below, where the equation of the line is f(x) = 2x - 9.
+
+Can't show you the picture here, but it looks like it's asking for the area of rectangles under the line with top left corners protuding from x = 4.5 to 8.5.
+
+Couple ways to solve this.  since the area of the boxes should add up to the the area under the line within the bounds mentioned, we can calculate the area as:
+
+$A = \int^{4.5}_{8.5} 2x - 9 dx$
+
+Which gives us an area of 16
+
+## 4. Find the area of the region bounded by the graphs of the given equations
+
+$y = x^2 - 2x - 2$ 
+$y = x + 2$
+
+I'll plot this out so you can see what it looks like (and so I can have at least one piece of code in here :)
+
+```{r}
+curve(x^2 - 2*x - 2,-5,5, col = "green")
+curve(x + 2, add = TRUE, col = "red")
+```
+
+
+Above you can see that it looks like a parabola cut through by a straight line; we want to find the area between the two graphs.  To do that, we'll first need to know for what values of x we need to integrate from, which we can do by setting finding the values of x for which the two equations are equal (intersections): $x^2 - 2x - 2 = x + 2$
+
+This simplifies down to $x^2 - 3x - 4 = 0$, which the equation is true (and the graphs intersect) at x = -1 and 4.
+
+Now we can find the area between them by taking the area between the top function (red) and the axis and subtracting from it the area of the bottom (green) function and the axis, all between x = -1 and 4.  Look somthing like this
+
+$A = \int^{4}_{-1} x + 2 dx -\int^{4}_{-1} x^2 - 2x - 2$
+
+Which simplifies to
+
+$A = 17.5 - 10/3 = 20.83$
+
+
+## 5. A beauty supply store expects to sell 110 flat irons during the next year. It costs $3.75 to store one flat iron for one year. There is a fixed cost of $8.25 for each order. Find the lot size and the number of orders per year that will minimize inventory costs.
+
+As best I can tell (assumption), irons will be sold somewhat evenly across the year.  We want to minimize the total cost for storage and the cost for ordering all 110 irons.  
+
+If x is the number of irons in one order, then the cost to store those irons over one year will be (in dollars) $3.75*x/2$ becuase we assume that irons will be sold evenly over the year, and on average we will be storing half (thats there the 2 comes from).
+
+The cost to order the irons is going to be 8.25 * the number of orders.  We know there are x irons per order, and we want 110 irons, so there are going to be 110/x orders.  Thus, the cost for ordering the irons is $8.25 * 110/x$
+
+Stick it all together and the total inventory cost will be $1.875x + 907.5/x$ (I simplified it a bit)
+
+Now to find the minimum cost, we can take the derivitiave of the cost equation above, and find the value of x when the equation equals 0
+
+$f(x) = 1.875x + 907.5/x$
+
+$f'(x) = 1.875 + 907.5/x^2$
+
+$1.875 + 907.5/x^2 = 0$
+
+$x = \pm22$
+
+Can't order negative irons, so that leaves us with an order size of 22; it will take 5 orders per year to order 110 irons per year.
+
+
+
+        
+## 6. Use integration by parts to solve the integral below.Use integration by parts to solve the integral below.
+
+$\int ln(9x) * x^6  dx$
+
+we can split this up into two parts, and apply the formula for integration by parts: $\int f*g' = fg - \int f'g$
+
+The two part's we'll use are $f = ln(9x)$ and $g' = x^6$
+
+Solving for the derivitave of $f$, we find $f' = 1/x$.  Taking the integral of $g'$, we find $g = x^7/7$ (ignoring the + C for now)
+
+Stick that all together, and we end up with $\int ln(9x) * x^6  dx = ln(9x)x^7/7 - \int x^6/7 dx$
+
+This is much easier to work with than the origional, because now what we need to integrate, $\int x^6/7 dx$, has been reduce to just one part; it's integral is $x^7/49$
+
+Tack on a + C and we have $\int ln(9x) * x^6  dx = ln(9x)x^7/7 - x^7/49 + C$
+
+## 7. Determine whether f(x) is a probability density function on the interval [1, e^6] . If not, determine the value of the definite integral.
+
+$f(x) = 1/6x$
+
+I believe it's a PDF if it sums to 1 over the interval.  Let's calculate the value over the entire integral and see if it's 1 or not.
+
+The indefinite integral, $f'(x)$ of this is $ln(x)/6 + C $ because the integral of $1/x$ is  $ln(x) + C$, where we add the C because it's an indefinite integral.
+
+To evaluate it under the interval mentioned before, we can remove the + C and calculate it as everything up to the upper bound, minus everything before the lower bound: 
+
+$A = [ ln(x)/6 ] ^ { e^6 } _1$
+
+$A = ln(e^6)/6 = ln(1)/6$
+
+$A = 1 - 0 = 1$
+
+The total area under the interval does equal 1, so this is a PDF on the interval $[1, e^6]$
+
+
+
+
+
+
+
+
