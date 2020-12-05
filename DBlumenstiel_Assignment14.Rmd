@@ -1,0 +1,104 @@
+---
+title: "Assignment 14"
+author: "David Blumenstiel"
+date: "12/5/2020"
+output: 
+  prettydoc::html_pretty:
+      theme: cayman
+      highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## For each function, find it's Taylor Series Expansion.  Only consider its valid ranges as indicated in the notes when you are computing the Taylor Series expansion.
+
+### 1: 
+
+$f(x) = 1/(1-x)$
+
+A Taylor Series is the expansion of a function into the infinite sum of it's derrived terms.  We can represent this as:
+
+$\sum _{n=0}^{\infty}\frac{f^{(n)}(a)}{n!}(x-a)^n$
+
+where $f^{(n)}(a)$ is the function evaluated at the $n$'th derivitiave, and $a$ is the point at which they are evaluated.  We'll set $a$ to 0; now, for example, the function $f(x) = 1/(1-x)$ becomes $f(0) = 1/(1-0)$.
+
+What we really want is a repeating pattern.  We can try to find one by solving for the first few terms of the Taylor Series, which we do below.
+
+Starting at n = 0 (the first term), we have $(x-0)^{-1} *(x-0)^0/0! = 1$
+
+at n = 1 (second term) we have $(1-0)^{-2} *(x-0)^1/1! = x$
+
+at n = 2 we have$2(1-0)^{-3} *(x-0)^2/2! = x^2$
+
+at n = 3 we have$3(1-0)^{-4} *(x-0)^3/3! = x^3$
+
+At this point, we're starting to see that the each expansion of n towards $\infty$ yields us another term of $x^n$.  Thus we can define this Taylor Series expansion as: $\sum_{n=0}^{\infty}x^n$ for the function $f(x) = \frac{1}{x-1}$
+
+It should be noted that this is only valid when the functions are evaluated at points that are not 0.
+
+
+### 2:
+
+$f(x) = e^x$
+
+Similar to before, let's try to find the first few terms of the Taylor Series and see if a pattern emerges.  We'll evaluate each term at $a = 0$.
+
+at n = 0 we have $e^0 *(x-0)^0/0! = 1$
+
+at n = 1 we have $e^0 *(x-0)^1/1! = x$
+
+at n = 2 we have $e^0 *(x-0)^2/2! = x^2/2$
+
+at n = 3 we have $e^0 *(x-0)^3/3! = x^3/6$
+
+And we get the picture.  Each term is $x^n/n!$.  The derivitave part of the function oesn't change.  We can write this Taylor Series Expansion as: $\sum_{n=0}^{\infty}x^n/n!$.  The function can be evaluated at any point
+
+### 3:
+
+$f(x)=ln(1+x)$
+
+Same as before:
+
+at n = 0 we have $ln(1+0) * (x-0)^0/0! = 0$
+
+at n = 1 we have $\frac{1}{1+0} * (x-0)^1/1! = x$
+
+at n = 2 we have $-\frac{1}{(1+0)^2} * (x-0)^2/2! = -x^2/2$
+
+at n = 3 we have $\frac{2}{(1+0)^3} * (x-0)^3/3! = x^3/3$
+
+at n = 4 we have $-\frac{6}{(1+0)^4} * (x-0)^4/4! = -x^4/4$
+
+at n = 5 we have $\frac{24}{(1+0)^5} * (x-0)^5/5! = x^5/5$
+
+
+Here it seems the term at n is $-1^{n-1}*x^n/n$, but only when n does not equal 0.  We can write this expansion as $\sum_{n=1}^{\infty}-1^{n-1}*x^n/n$
+
+We can only evaluate the function at points greater than -1, because $ln(\leq0)$ is undefined.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
