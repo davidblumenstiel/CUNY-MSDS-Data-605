@@ -1,0 +1,144 @@
+---
+title: "Assignment 15"
+author: "David Blumenstiel"
+date: "12/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1: Find the equation of the regression line for the given points. Round any final values to the nearest hundredth, if necessary.  ( 5.6, 8.8 ), ( 6.3, 12.4 ), ( 7, 14.8 ), ( 7.7, 18.2 ), ( 8.4, 20.8 )
+
+R can do this one for me.
+
+```{r}
+X <- c(5.6, 6.3, 7, 7.7, 8.4)
+y <- c(8.8, 12.4, 14.8, 18.2, 20.8)
+
+model <- lm(y~X)
+plot(X,y)
+abline(model$coefficients, col="red")
+print(model$coefficients)
+```
+The intercept is -14.8, and the slope is about 4.26: $y = -14.8 + 4.26X$
+
+
+## Find all local maxima, local minima, and saddle points for the function given below. Write your answer(s) in the form ( x, y, z ). Separate multiple points with a comma.
+
+$f(x, y ) = 24x - 6xy^2 - 8y^3$
+
+I found this video pretty helpful:
+
+https://www.google.com/search?rlz=1C1CHBF_enUS769US769&ei=_LvPX7CnAsmB5wKDt7zoAg&q=how+to+find+local+maxima+and+minima+multivariable+function&oq=how+to+find+local+maxima+and+minima+mult&gs_lcp=CgZwc3ktYWIQARgAMggIIRAWEB0QHjIICCEQFhAdEB46BAgAEEc6BQgAEMkDOgIIADoJCAAQyQMQFhAeOgYIABAWEB5Q7pgOWIetDmCwtg5oAXACeACAAVyIAfMDkgEBNpgBAKABAaoBB2d3cy13aXrIAQjAAQE&sclient=psy-ab#kpvalbx=_6bzPX5XPJc6J5wKrrL3IAg10
+
+First we gotta find the derivitaves in respect to x and y seperately; well need both first and second order ones.
+
+$df/dx = 24 - 6y^2$
+
+$df/dy = -12xy - 24y^2$
+
+Now we can set the equations above to 0 and solve for x and y to find the critical points (where the x,y cords are 0, indicating a local maximum or minimum value).  Let's start off by solving for y:
+
+$df/dx = 24 - 6y^2 = 0 = 4 - y^2$
+
+$y = \pm 2$
+
+Now we can solve for x using the other derivitave:
+
+where y = $\pm$ 2: $df/dy = -12xy - 24y^2 =  0 = x*y+2y^2$
+
+$0 = \pm2x + 2(\pm2)^2 = \pm2x + 8$
+
+$x = \pm4$ where if y is +2 x is -4, and if y is -2 x is 4.  Thus, our critical points are (-4,2), (4,-2)
+
+Now we know where the possible minima and maxima are, but we don't know what type they are.  For that we need to find the second order derivitaves, including one in respect to xy
+
+$d^2f/dx^2 = 0$
+
+$d^2f/dy^2 = -12 - 48y$
+
+$d^2f/dxdy = -12$
+
+
+With these we can perform the second derivitave test.  For that we take the formula $D =  d^2f/dx^2 * d^2f/dy^2 - (d^2f/dxdy)^2$ evaluated at the critical points, and interperet each critical point as: a local minimum if $D > 0$ and $d^2f/dx^2(x_0y_0) > 0$, a local maximum if $D > 0$ and $d^2f/dx^2(x_0y_0) < 0$, and a saddle point (kinda like you would see with an $y = x^3$ function) if $D < 0$.  Let's start off with the critical point (-4,2):
+
+$D = 0 * (-12 * 48y) - (-12^2) = 0 * (-12 * 48*2) - (-12^2) = -144$ 
+
+So (-4,2) is a saddle point.  Let's try (4,-2):
+
+$D = 0 * (-12 * 48y) - (-12^2) = 0 * (-12 * 48*-2) - (-12^2) = -144$ 
+
+Also a saddle point.  Now we just plug the critical values into the origional equation to get the z values
+
+$z = 24x - 6xy^2 - 8y^3 = (24*-4) - (6*-4*2^2) - (8*2^3) = -64$
+
+And the next point:
+
+$z = 24x - 6xy^2 - 8y^3 = (24*4) - (6*4*-2^2) - (8*-2^3) = 64$
+
+So we have two saddle points at (-4, 2, -64) and (4, -2, 64)
+
+
+## 3. A grocery store sells two brands of a product, the "house" brand and a "name" brand. The manager estimates that if she sells the "house" brand for x dollars and the "name" brand for y dollars, she will be able to sell 81 - 21x + 17y units of the "house" brand and 40 + 11x - 23y units of the "name" brand.
+
+#### Step 1. Find the revenue function R ( x, y ).
+
+Easy enough: just take the functions for how many of each get's sold, multiply by the price, and stick them together:
+
+$f(x) = x(81 - 21x + 17y)$
+
+$f(y) = y(40 + 11x - 23y)$
+
+$f(x,y) = x(81 - 21x + 17y) + y(40 + 11x - 23y) = −21x^2+28xy−23y^2+81x+40y$
+
+#### Step 2. What is the revenue if she sells the "house" brand for $2.30 and the "name" brand for $4.10?
+
+$f(2.3,4.1) = -21x^2+28xy−23y^2+81x+40y = -21*2.3^2+28*2.3*4.1−23*4.1^2+81*2.3+40*4.1 = 116.62$
+
+She'll make $116.62
+
+
+## 4. A company has a plant in Los Angeles and a plant in Denver. The firm is committed to produce a total of 96 units of a product each week. The total weekly cost is given by C(x, y) = 1/6 * x^2 + 1/6 * y^2 + 7x + 25y + 700, where x is the number of units produced in Los Angeles and y is the number of units produced in Denver. How many units should be produced in each plant to minimize the total weekly cost?
+
+So we know that the total number of units is going to be 96; therefore x + y = 96, y = 96 - x, and x = 96 - y.  Now, we can re-write the cost function in terms of one term (x or y) to make this easier.  Let's re-write it in terms of x .
+
+$C(x) = x^2/6 + y^2/6 + 7x + 25y + 700 = x^2/6 + (96-x)^2/6 + 7x + 25(96-x) + 700$
+
+We can simplify it a bit so our eyes dont hurt when we read it
+
+$C(x) = x^2/3 -50x + 4636$
+
+Good.  Now looking at this function, we can kinda see that it's going to be some type of U shaped parabola because it has a positive $x^2$ term.  This means that we can find the bottom of it (the minimum cost) by taking the derivitave of the cost function and solving at x = 0 (where the rate of change in the function is 0). 
+
+$\frac {dc}{dx} = 2x/3 - 50 = 0$.  Therefore $x = 50*3/2 = 75$
+
+To get the actual cost, we just plug that into the equation before the derivitave:
+
+$C(75) = 75^2/3 -50*75 + 4636 = 894.33$
+
+Thus, the minimum cost is $894.33 75 units are produced in Los Angeles and 21 units (96-75) are produced in Denver.
+
+## 5. Evaluate the double integral on the given region.  Write your answer in exact form without decimals.
+
+$\iint\limits_R (e^{8x + 3y})dA; R: 2 \leq x \leq 4$ and $2 \leq y \leq 4$
+
+Let's re-write it on the given region:
+
+$\int_2^4 \int_2^4 (e^{8x + 3y}) dxdy$
+
+You'll notice it's one integral inside the other.  Let's integrate in respect to x while keeping y constant
+
+$\int_2^4 \int_2^4 (e^{8x + 3y}) dxdy = \int_2^4 \frac {e^{32 + 3y} - e^{16+3y}}{8}dy$
+
+See how the inside integral dissapeared along with the x terms?  Now we just solve the outside y intergral and in respect to y:
+
+$\int_2^4 \frac {e^{32 + 3y} - e^{16+3y}}{8}dy = \frac{(e^{42}-e^{28})-(e^{38}-e^{22})}{24}$
+
+Which comes out to about 5.34
+
+
+
+
+
