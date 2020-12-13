@@ -1,0 +1,216 @@
+---
+title: "Final Exam Problem 1"
+author: "David Blumenstiel"
+date: "12/5/2020"
+output: 
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+library(dplyr)
+```
+
+## Using R, generate a random variable X that has 10,000 random uniform numbers from 1 to N, where N can be any number of your choosing greater than or equal to 6.  Then generate a random variable Y that has 10,000 random normal numbers with a mean = stdev = (N+1)/2
+
+Below should do the trick.
+```{r}
+set.seed(47) #So you see what I see
+
+N = 28
+X <- runif(n = 10000, min =1, max = N) 
+
+Y <- rnorm(n = 10000, mean = (N+1)/2, sd = (N+1)/2)
+
+```
+
+### *Probability*.   Calculate as a minimum the below probabilities a through c.  Assume the small letter "x" is estimated as the median of the X variable, and the small letter "y" is estimated as the 1st quartile of the Y variable.  Interpret the meaning of all probabilities.
+
+##### a.   P(X>x | X>y)
+
+Interpreted literally, this reads as the probability that a number a random uniform value between 1 and N is going to be greater than the median of random uniform values between 1 and N GIVEN that the the random uniform value is greater than the first quartile of a normally distributed variable with a mean and stdev of (N+1)/2.
+
+For calculating this with the variables chosen previously, we'll first simulate with R.
+
+```{r}
+x = median(X)
+
+y = summary(Y)[[2]]
+
+print(x)
+print(y)
+```
+
+We end up with the simulated median of the X values as x = 14.44, and the first quartile of the Y values as y =  4.63.  
+
+Because we know that X is greater than y, we can re-write use a uniform distribution from y to N to find the probability of a random X value being greater than x.
+
+```{r}
+punif(x, min = y, max = N, lower.tail = FALSE) #Looking at the upper tail because we want the probability of greater than x
+```
+
+We get a probability of about 0.58.  It makes sense that it's greater than 0.5 as we have ruled out a portion of the values lower than x because we take X as greater than y.
+
+
+We can also solve this without simulation; this time, we'll set x and y to their theoretical values, and then solve:
+
+```{r}
+N = 28
+x_theoretical <- (N+1)/2 #The median of X (same as mean) given a minimum value of 1 and a maximum of N
+y_theoretical <- qnorm(0.25,mean = (N+1)/2, sd = (N+1)/2) #The first quartile of the normal distrubtion given a mean and sd of (N+1)/2
+
+print(x)
+print(y)
+```
+
+We can now see that the 'true' values of x and y are 14.5 and 4.72 ish, respectively.  Let's plug em in and see what we get.
+
+```{r}
+punif(x_theoretical, min = y_theoretical, max = N, lower.tail = FALSE)
+```
+
+We get a similar probability of around 0.58.
+
+Interestingly, when testing out other values of N, the probability settles at 0.5971968 as N grows.
+
+
+
+##### b.  P(X>x, Y>y)
+
+This one reads as "The probability that X is greater than x *and* that Y is greater than y" (Intersection).  Neither part of the probability function here has bearing on the other part (Independent events), so we can also rephrase this as $P(X>x) * P(Y>y)$.  
+
+Let's start off by solving this theoretically.
+
+We know that x is the median of the X values, so a random X value is going to have a 50% chance of being greater (or less) than x.
+```{r}
+punif((N+1)/2, min = 1, max = N) #(N+1)/2 is the theoretical median of X 
+```
+
+Now, y is the upper bound of the first quartile of Y.  It should make sense then that 75% of the values of Y are going to be greater than that; the other three quartiles are greater than y.
+```{r}
+pnorm(y_theoretical, mean = (N+1)/2, sd = (N+1)/2, lower.tail = FALSE)
+```
+
+Now we put them together: 
+
+$P(X>x) * P(Y>y) = 0.5 * 0.75 = 0.375 $
+
+
+We can also simulate this with the actual data.
+
+```{r}
+punif(x, min = 1, max = N) * pnorm(y, mean = (N+1)/2, sd = (N+1)/2, lower.tail = FALSE)
+```
+
+Pretty close.
+
+
+##### c.  P(X<x | X>y)	
+
+
+This one reads as: "The probability that X is less than x, *given* that X is greater than y.
+
+Pretty similar to part a., but this time X is less than x.  I can say right away that the answer to this is going to be 1 - the answer to part a., because the only thing changing here is it's now asking for X less than x.  We just need to change the equation to look at the lower tail for X values under x on the uniform distribution from y to N (given than y is now the minimum value of that distribution):
+
+```{r}
+punif(x_theoretical, min = y_theoretical, max = N, lower.tail = TRUE) #Lower tail is now true (this happens in R by default, but I wanted exemplify it)
+```
+
+This is exactly 1 - the theoretical answer to part a.  Now let's try using the actual data.
+
+```{r}
+punif(x, min = y, max = N, lower.tail = TRUE)
+```
+
+Very close, and also exactly 1 - the simulated answer to part a.
+
+
+###  Investigate whether P(X>x and Y>y) = P(X>x)P(Y>y) by building a table and evaluating the marginal and joint probabilities.
+
+This is how we calculated part b. of the previous question.  Below is a table of probabilities using the actual values of X and Y (and not theoretical ones).
+
+```{r}
+n = 10000
+
+#Below builds the table of probabilties for each condition
+probs <- data.frame(matrix(c(
+  length(which(X>x & Y>y)),
+  length(which(X<x & Y>y)),
+  length(which(X>x & Y>y)) + length(which(X<x & Y>y)),
+  length(which(X>x & Y<y)),
+  length(which(X<x & Y<y)),
+  length(which(X<x & Y<y)) + length(which(X<x & Y<y))+4, #Was getting a little error in the margins, which the +4's sovled (dunno why)
+  length(which(X>x & Y>y)) + length(which(X>x & Y<y)),
+  length(which(X<x & Y>y)) + length(which(X<x & Y<y)),
+  length(which(X>x & Y>y)) + length(which(X<x & Y>y)) + length(which(X<x & Y<y)) + length(which(X<x & Y<y))+4
+)/n, ncol = 3, byrow = TRUE))
+
+
+rownames(probs) <-c('Y>y',"Y<y","Total")
+kable(probs, col.names = c("X>x","X<x","Total"), row.names = 1, format = "html",caption = "Table of Probabilities with Margins") %>%
+  kable_styling(full_width = FALSE) %>%
+  column_spec(1, bold = TRUE)   #Took me a while to figure this line out
+
+
+```
+
+As we can see above, $P(X>x, Y>y) = 0.3748$, which is about the same (with a little bit of error because we're using actual data) as what you get when you multiply the corresponding margins: $P(X>x) * P(Y>y) = 0.75 * 0.5 = 0.375$.  
+
+So yes, $P(X>x, Y>y) = P(X>x) * P(Y>y)$ is equivalent
+
+
+###  Check to see if independence holds by using Fisher’s Exact Test and the Chi Square Test.  What is the difference between the two? Which is most appropriate?
+
+Both of these tests will test the hypothesis that each of the variables are independent of one-another.  The null hypothesis for both is that the variables are independent, and if we reject the null then it's likely that the variables are dependent.
+
+Below we have the contingency table for the data; the frequency distribution of the variables.  We'll use this in our calculations. 
+
+```{r}
+counts <- matrix(c(
+  length(which(X>x & Y>y)),
+  length(which(X<x & Y>y)),
+  length(which(X>x & Y<y)),
+  length(which(X<x & Y<y))
+  ),nrow=2,byrow =TRUE)
+
+rownames(counts) <-c('Y>y',"Y<y")
+kable(counts, col.names = c("X>x","X<x"), row.names = 1, format = "html",caption ="Counts") %>%
+  kable_styling(full_width = FALSE) %>%
+  column_spec(1, bold = TRUE)
+
+```
+
+Let's start off with a Fisher's Exact Test.  This is going to test whether the proportions of a variable are different amongst another variable.  This will compute the answer as if the numbers in the margins are fixed (when in reality they are not), and give an exact P value
+
+
+```{r}
+fisher.test(counts)
+```
+
+Because the p-value is well above 0.05, we cannot reject the null hypothesis: the variables are very likely independent of one-another.
+
+Let's try again with a Chi-sq test, which will give us an approximate p-value, and is generally considered the superior test when you have lot's of data.
+
+```{r}
+csq <- chisq.test(counts)
+csq
+```
+
+Once again, the p-value is very high and we keep the null hypothesis: the variables are independent.
+
+As to which test is most appropriate, convention is that if the expected frequency of one or more cells in the contingency table (shown below) is less than 5, you want to go with Fisher's; otherwise go for Chi-sq.  
+
+```{r}
+csq$expected
+```
+
+As we can see, all of the expected frequencies (essentially the ideal independent distribution) are way above 5, and Chi-sq is the more appropriate test here.  Although, I did read that at one point Chi-sq was considered poorer when there's only one degree of freedom, which is the case ere; evidently this is no longer a concern.  
+
+
+
+### Link to part 2
+https://www.kaggle.com/davidblumenstiel/housing-prices-advanced-regression
+
